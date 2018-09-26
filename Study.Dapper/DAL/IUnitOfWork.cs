@@ -9,7 +9,7 @@ namespace Study.Dapper.DAL
         void CommitTransaction();
         void RollbackTransaction();
         void Dispose();
-        ICourseRepository CourseRepository();
-        IDepartmentRepository DepartmentRepository();
+        ICourseRepository CourseRepository { get; }
+        IDepartmentRepository DepartmentRepository { get; }
     }
 }

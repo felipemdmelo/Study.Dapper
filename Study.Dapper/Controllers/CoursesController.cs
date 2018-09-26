@@ -21,7 +21,7 @@ namespace Study.Dapper.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var result = await _unitOfWork.CourseRepository().GetAll();
+            var result = await _unitOfWork.CourseRepository.GetAll();
             return View(result);
         }
 
@@ -33,7 +33,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var course = await _unitOfWork.CourseRepository().Get(id);
+            var course = await _unitOfWork.CourseRepository.Get(id);
             if (course == null)
             {
                 return NotFound();
@@ -58,7 +58,7 @@ namespace Study.Dapper.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _unitOfWork.CourseRepository().Insert(course);
+                await _unitOfWork.CourseRepository.Insert(course);
                 return RedirectToAction(nameof(Index));
             }
             await LoadViewBags();
@@ -90,7 +90,7 @@ namespace Study.Dapper.Controllers
                     {
                         Name = model.DepartmentName
                     };
-                    department.Id = await _unitOfWork.DepartmentRepository().Insert(department);
+                    department.Id = await _unitOfWork.DepartmentRepository.Insert(department);
 
                     //ForcingErrorForRollBackAction(); // Forcing error..
 
@@ -100,7 +100,7 @@ namespace Study.Dapper.Controllers
                         Name = model.CourseName,
                         DepartmentId = department.Id
                     };
-                    course.Id = await _unitOfWork.CourseRepository().Insert(course);
+                    course.Id = await _unitOfWork.CourseRepository.Insert(course);
 
                     _unitOfWork.CommitTransaction();
 
@@ -116,11 +116,6 @@ namespace Study.Dapper.Controllers
             return View(model);
         }
 
-        private void ForcingErrorForRollBackAction()
-        {
-            throw new Exception("FORCING ERROR TO ROLLBACK ACTION");
-        }
-
         // GET: Courses/Edit/5
         public async Task<IActionResult> Edit(long id)
         {
@@ -129,7 +124,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var course = await _unitOfWork.CourseRepository().Get(id);
+            var course = await _unitOfWork.CourseRepository.Get(id);
             if (course == null)
             {
                 return NotFound();
@@ -154,7 +149,7 @@ namespace Study.Dapper.Controllers
             {
                 try
                 {
-                    await _unitOfWork.CourseRepository().Update(course);
+                    await _unitOfWork.CourseRepository.Update(course);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -181,7 +176,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var course = await _unitOfWork.CourseRepository().Get(id);
+            var course = await _unitOfWork.CourseRepository.Get(id);
             if (course == null)
             {
                 return NotFound();
@@ -195,21 +190,51 @@ namespace Study.Dapper.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var course = await _unitOfWork.CourseRepository().Get(id);
-            await _unitOfWork.CourseRepository().Delete(course);
+            if (id <= 0)
+                return NotFound();
 
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _unitOfWork.BeginTransaction();
+
+                var course = await _unitOfWork.CourseRepository.Get(id);
+                if (course == null)
+                    return NotFound();
+
+                await _unitOfWork.CourseRepository.Delete(course);
+
+                //ForcingErrorForRollBackAction();
+
+                var department = course.Department;
+                await _unitOfWork.DepartmentRepository.Delete(department);
+
+                _unitOfWork.CommitTransaction();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch(Exception e)
+            {
+                ModelState.AddModelError("error", e.Message);
+                _unitOfWork.RollbackTransaction();
+            }
+
+            return RedirectToAction(nameof(Delete));
         }
 
         #region PRIVATE METHODS
         private async Task LoadViewBags(long departmentId = 0)
         {
-            ViewData["DepartmentId"] = new SelectList(await _unitOfWork.DepartmentRepository().GetAll(), "Id", "Name", departmentId);
+            ViewData["DepartmentId"] = new SelectList(await _unitOfWork.DepartmentRepository.GetAll(), "Id", "Name", departmentId);
         }
 
         private async Task<bool> CourseExists(long id)
         {
-            return await _unitOfWork.CourseRepository().Get(id) != null;
+            return await _unitOfWork.CourseRepository.Get(id) != null;
+        }
+
+        private void ForcingErrorForRollBackAction()
+        {
+            throw new Exception("FORCING ERROR TO ROLLBACK ACTION");
         }
         #endregion
     }

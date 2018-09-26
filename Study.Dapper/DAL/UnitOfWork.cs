@@ -17,10 +17,6 @@ namespace Study.Dapper.DAL
         {
             _connection = new SqlConnection(ConfigurationExtensions.GetConnectionString(configuration, "DefaultConnection"));
             _connection.Open();
-            _transaction = _connection.BeginTransaction();
-
-            _courseRepository = new CourseRepository(_connection, _transaction);
-            _departmentRepository = new DepartmentRepository(_connection, _transaction);
         }
 
         public void BeginTransaction()
@@ -43,7 +39,6 @@ namespace Study.Dapper.DAL
             finally
             {
                 _transaction.Dispose();
-                _transaction = _connection.BeginTransaction();
             }
         }
 
@@ -60,14 +55,26 @@ namespace Study.Dapper.DAL
             _transaction = null;
         }
 
-        public ICourseRepository CourseRepository()
+        ICourseRepository IUnitOfWork.CourseRepository
         {
-            return _courseRepository;
+            get
+            {
+                if (_courseRepository == null)
+                    _courseRepository = new CourseRepository(_connection, _transaction);
+
+                return _courseRepository;
+            }
         }
 
-        public IDepartmentRepository DepartmentRepository()
+        IDepartmentRepository IUnitOfWork.DepartmentRepository
         {
-            return _departmentRepository;
+            get
+            {
+                if (_departmentRepository == null)
+                    _departmentRepository = new DepartmentRepository(_connection, _transaction);
+
+                return _departmentRepository;
+            }
         }
     }
 }

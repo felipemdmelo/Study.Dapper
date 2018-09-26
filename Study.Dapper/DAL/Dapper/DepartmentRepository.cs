@@ -1,5 +1,4 @@
 ﻿using Dapper.Contrib.Extensions;
-using Microsoft.Extensions.Configuration;
 using Study.Dapper.DL.Entities;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -21,45 +20,31 @@ namespace Study.Dapper.DAL.Dapper
 
         public async Task<List<Department>> GetAll()
         {
-            //_connection.Open();
-
-            var departments = await _connection.GetAllAsync<Department>();
+            var departments = await _connection.GetAllAsync<Department>(transaction: _transaction);
 
             return departments.ToList();
         }
 
         public async Task<Department> Get(long id)
         {
-            //_connection.Open();
-
-            var department = await _connection.GetAsync<Department>(id);
+            var department = await _connection.GetAsync<Department>(id, transaction: _transaction);
 
             return department;
         }
 
         public async Task<long> Insert(Department department)
         {
-            var identity = await _connection.InsertAsync(department, transaction: _transaction);
-
-            return identity;
+            return await _connection.InsertAsync(department, transaction: _transaction);
         }
 
         public async Task<bool> Update(Department department)
         {
-            //_connection.Open();
-
-            var isSuccess = await _connection.UpdateAsync(department);
-
-            return isSuccess;
+            return await _connection.UpdateAsync(department, transaction: _transaction);
         }
 
         public async Task<bool> Delete(Department department)
         {
-            //_connection.Open();
-
-            var isSuccess = await _connection.DeleteAsync(department);
-
-            return isSuccess;
+            return await _connection.DeleteAsync(department, transaction: _transaction);
         }
     }
 }

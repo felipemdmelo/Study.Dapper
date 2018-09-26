@@ -18,7 +18,7 @@ namespace Study.Dapper.Controllers
         // GET: Departments
         public async Task<IActionResult> Index()
         {
-            return View(await _unitOfWork.DepartmentRepository().GetAll());
+            return View(await _unitOfWork.DepartmentRepository.GetAll());
         }
 
         // GET: Departments/Details/5
@@ -29,7 +29,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var department = await _unitOfWork.DepartmentRepository().Get(id);
+            var department = await _unitOfWork.DepartmentRepository.Get(id);
             if (department == null)
             {
                 return NotFound();
@@ -53,7 +53,7 @@ namespace Study.Dapper.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _unitOfWork.DepartmentRepository().Insert(department);
+                await _unitOfWork.DepartmentRepository.Insert(department);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -68,7 +68,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var department = await _unitOfWork.DepartmentRepository().Get(id);
+            var department = await _unitOfWork.DepartmentRepository.Get(id);
             if (department == null)
             {
                 return NotFound();
@@ -92,7 +92,7 @@ namespace Study.Dapper.Controllers
             {
                 try
                 {
-                    await _unitOfWork.DepartmentRepository().Update(department);
+                    await _unitOfWork.DepartmentRepository.Update(department);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -118,7 +118,7 @@ namespace Study.Dapper.Controllers
                 return NotFound();
             }
 
-            var department = await _unitOfWork.DepartmentRepository().Get(id);
+            var department = await _unitOfWork.DepartmentRepository.Get(id);
             if (department == null)
             {
                 return NotFound();
@@ -132,15 +132,15 @@ namespace Study.Dapper.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
-            var department = await _unitOfWork.DepartmentRepository().Get(id);
-            await _unitOfWork.DepartmentRepository().Delete(department);
+            var department = await _unitOfWork.DepartmentRepository.Get(id);
+            await _unitOfWork.DepartmentRepository.Delete(department);
 
             return RedirectToAction(nameof(Index));
         }
 
         private async Task<bool> DepartmentExists(long id)
         {
-            return await _unitOfWork.DepartmentRepository().Get(id) != null;
+            return await _unitOfWork.DepartmentRepository.Get(id) != null;
         }
     }
 }
